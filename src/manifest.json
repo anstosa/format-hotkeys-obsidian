@@ -1,0 +1,10 @@
+{
+  "id": "{{ NAME }}",
+  "name": "Format Hotkeys",
+  "version": "{{ VERSION }}",
+  "minAppVersion": "0.9.8",
+  "description": "{{ DESCRIPTION }}",
+  "author": "{{ AUTHOR_NAME }}",
+  "authorUrl": "{{ AUTHOR_URL }}",
+  "isDesktopOnly": false
+}
