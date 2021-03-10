@@ -1,5 +1,5 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
-import { each, last } from "lodash";
+import { each, last, update } from "lodash";
 import { Editor, Position } from "codemirror";
 
 export interface Selection {
@@ -46,6 +46,15 @@ export const getSelection = (editor: Editor): Selection => {
 };
 
 /**
+ * Uses regex to get the nth line of a given selection content
+ */
+const getLineContent = (line: number, content: string): string => {
+  const [, , match] =
+    content.match(new RegExp(`(.*\n?){${line}}(.*)(\n?)`)) || [];
+  return match || "";
+};
+
+/**
  * Takes a Selection object and restores the cursor if applicable
  */
 export const restoreCursor = (
@@ -62,9 +71,10 @@ export const restoreCursor = (
     const { line } = originalHead;
     let delta = 0;
     if (content && updatedContent) {
+      const relativeLine = originalHead.line - start.line;
       delta =
-        (last(updatedContent.split("\n") || [""]) as string).length -
-        (last(content.split("\n") || [""]) as string).length;
+        getLineContent(relativeLine, updatedContent).length -
+        getLineContent(relativeLine, content).length;
     }
     const ch = originalHead.ch + delta;
     editor.setSelection({ line, ch });
