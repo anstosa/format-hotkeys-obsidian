@@ -385,18 +385,6 @@ export default class FormatHotkeys extends Plugin {
     });
   };
 
-  toggleStrike = (): void => {
-    this.removePrefix();
-  };
-
-  toggleBold = (): void => {
-    this.removePrefix();
-  };
-
-  toggleItalics = (): void => {
-    this.removePrefix();
-  };
-
   indent = (): void => {
     this.togglePrefix({
       searches: [REGEX_ANY],
