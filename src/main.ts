@@ -11,14 +11,9 @@ import {
 } from "./regex";
 import { each, every, times } from "lodash";
 import { Editor } from "codemirror";
-import {
-  getSelection,
-  prefixLines,
-  restoreCursor,
-  Selection,
-} from "./codemirror";
+import { getSelection, prefixLines, restoreCursor } from "./codemirror";
 import { log } from "./log";
-import { Plugin } from "obsidian";
+import { MarkdownView, Plugin } from "obsidian";
 
 const UL_CHAR = "-";
 
@@ -254,21 +249,17 @@ export default class FormatHotkeys extends Plugin {
    * Utility functions
    **=================================*/
 
-  getActiveEditor = (): Editor => {
-    const { activeLeaf } = this.app.workspace;
-    // TODO: fix this typing?
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const editor: Editor = (activeLeaf.view as any).sourceMode.cmEditor;
-    return editor;
+  getActiveEditor = (): Editor | null => {
+    const { workspace } = this.app;
+    const activeView = workspace.getActiveViewOfType(MarkdownView);
+    return activeView?.sourceMode?.cmEditor || null;
   };
-
-  /**
-   * Get the CodeMirror selection from the current editor
-   */
-  getSelection = (): Selection => getSelection(this.getActiveEditor());
 
   getDefaultIndent = (): string => {
     const editor = this.getActiveEditor();
+    if (!editor) {
+      return "";
+    }
     return editor.getOption("indentWithTabs")
       ? "\t"
       : times(editor.getOption("tabSize") || 4, () => " ").join("");
@@ -282,8 +273,12 @@ export default class FormatHotkeys extends Plugin {
     add: customAdder,
     remove: customRemover,
   }: TogglePrefix): void => {
-    const selection = this.getSelection();
-    const { start, end, content, editor } = selection;
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
 
     let updatedContent: string = "";
 
