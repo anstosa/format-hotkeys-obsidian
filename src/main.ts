@@ -138,29 +138,6 @@ export default class FormatHotkeys extends Plugin {
     // });
 
     this.addCommand({
-      id: "fho-indent",
-      name: "Increase indent for selection",
-      callback: this.indent,
-      hotkeys: [
-        {
-          modifiers: ["Mod"],
-          key: "]",
-        },
-      ],
-    });
-
-    this.addCommand({
-      id: "fho-outdent",
-      name: "Decrease indent for selection",
-      callback: this.outdent,
-      hotkeys: [
-        {
-          modifiers: ["Mod"],
-          key: "[",
-        },
-      ],
-    });
-    this.addCommand({
       id: "fho-normal",
       name: "Remove formatting",
       callback: this.removeFormatting,
@@ -373,20 +350,6 @@ export default class FormatHotkeys extends Plugin {
       prefix: `${UL_CHAR} `,
       replace: [REGEX_TODO, REGEX_OL],
     });
-  };
-
-  indent = (): void => {
-    const editor = this.getActiveEditor();
-    if (editor) {
-      editor.execCommand("indentMore");
-    }
-  };
-
-  outdent = (): void => {
-    const editor = this.getActiveEditor();
-    if (editor) {
-      editor.execCommand("indentLess");
-    }
   };
 
   removeFormatting = (): void => {

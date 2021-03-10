@@ -12,8 +12,6 @@ Adds [Google Docs style keyboard shortcuts](https://support.google.com/docs/answ
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd> | Toggle Bulleted List    |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> | Toggle Numbered List    |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>6</kbd> | Toggle Checklist        |
-| <kbd>Ctrl</kbd> + <kbd>]</kbd>                    | Increase Indent         |
-| <kbd>Ctrl</kbd> + <kbd>[</kbd>                    | Decrease Indent         |
 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>0</kbd>   | Apply Normal text style |
 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>   | Apply Heading 1         |
 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>2</kbd>   | Apply Heading 2         |
