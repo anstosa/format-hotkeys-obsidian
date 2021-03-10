@@ -1,9 +1,8 @@
 import {
   buildRegex,
-  getIndent,
   matches,
+  PREFIXES,
   REGEX_ANY,
-  REGEX_HEADING,
   REGEX_OL,
   REGEX_QUOTE,
   REGEX_TODO,
@@ -17,26 +16,19 @@ import { MarkdownView, Plugin } from "obsidian";
 
 const UL_CHAR = "-";
 
-interface TogglePrefixBase {
-  searches: string[];
+interface AddPrefix {
   replace?: string[];
-  force?: boolean;
-  replaceMatches?: string[];
-  remove?: (content: string, searches: TogglePrefixBase["searches"]) => string;
+  prefix?: string;
 }
 
-interface TogglePrefixLiteral extends TogglePrefixBase {
-  prefix: string;
-  add?: undefined;
+interface RemovePrefix {
+  searches?: string[];
 }
 
-interface TogglePrefixFunction extends TogglePrefixBase {
-  prefix?: undefined;
-  add: (content: string, searches: TogglePrefixBase["searches"]) => string;
+interface TogglePrefix extends AddPrefix, RemovePrefix {
+  add?: (options: AddPrefix) => void;
+  remove?: (options: RemovePrefix) => void;
 }
-
-type TogglePrefix = TogglePrefixLiteral | TogglePrefixFunction;
-
 export default class FormatHotkeys extends Plugin {
   /**==================================
    * Event handlers
@@ -60,7 +52,7 @@ export default class FormatHotkeys extends Plugin {
       hotkeys: [
         {
           modifiers: ["Mod", "Shift"],
-          key: "0",
+          key: "6",
         },
       ],
     });
@@ -232,87 +224,87 @@ export default class FormatHotkeys extends Plugin {
     return activeView?.sourceMode?.cmEditor || null;
   };
 
+  /**
+   * Adds a prefix to the current selection or line
+   *
+   * replace: list of RegEx prefix patterns
+   *          that should be replaced if they already exist
+   *
+   * prefix: the string prefix to add
+   */
+  addPrefix = ({ replace = [], prefix = "" }: AddPrefix): void => {
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
+
+    const updatedContent = prefixLines({
+      content,
+      prefix,
+      replace: [...replace, REGEX_ANY],
+      preserveIndent: true,
+    });
+    editor.replaceRange(updatedContent, start, end);
+    restoreCursor(selection, content, updatedContent);
+  };
+
+  /**
+   * Removes prefixes from the current selection or line
+   *
+   * searches: list of RegEx prefix patterns
+   *           that should be removed. Defaults to all prefixes
+   */
+  removePrefix = ({ searches = PREFIXES }: RemovePrefix = {}): void => {
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
+
+    const updatedContent = content.replace(buildRegex(searches), "");
+    editor.replaceRange(updatedContent, start, end);
+    restoreCursor(selection, content, updatedContent);
+  };
+
   togglePrefix = ({
-    searches,
+    searches = [],
     replace = [],
     prefix = "",
-    force,
-    add: customAdder,
-    remove: customRemover,
+    remove,
+    add,
   }: TogglePrefix): void => {
     const editor = this.getActiveEditor();
     if (!editor) {
       return;
     }
     const selection = getSelection(editor);
-    const { start, end, content } = selection;
+    const { content } = selection;
 
-    let updatedContent: string = "";
-
-    const remove = () => {
-      if (customRemover) {
-        updatedContent = customRemover(content, searches);
-      } else {
-        updatedContent = content.replace(buildRegex(searches), "");
-      }
-      editor.replaceRange(updatedContent, start, end);
-    };
-
-    const add = () => {
-      if (customAdder) {
-        updatedContent = customAdder(content, [...searches, ...replace]);
-      } else {
-        updatedContent = prefixLines({
-          content,
-          prefix,
-          replace: [...searches, ...replace, REGEX_ANY],
-          preserveIndent: true,
-        });
-      }
-      editor.replaceRange(updatedContent, start, end);
-    };
-
-    if (force === true) {
-      add();
-    } else if (force === false) {
-      remove();
-    } else if (
-      every(content.split("\n"), (line) => matches(line, buildRegex(searches)))
+    if (
+      every(content.split("\n"), (line) =>
+        matches(line, buildRegex(searches || [prefix]))
+      )
     ) {
       // full match, remove prefixes
-      remove();
+      (remove || this.removePrefix)({ searches });
     } else {
       // partially or no match. Add prefixes
-      add();
+      (add || this.addPrefix)({
+        replace: [...searches, ...replace],
+        prefix,
+      });
     }
-
-    restoreCursor(selection, content, updatedContent);
-  };
-
-  removePrefix = (preserveIndent: boolean = false): void => {
-    this.togglePrefix({
-      searches: [REGEX_UL, REGEX_TODO, REGEX_HEADING, REGEX_OL, REGEX_QUOTE],
-      prefix: "",
-      remove: (text, searches) => {
-        if (!preserveIndent) {
-          return text.replace(buildRegex(searches), "");
-        }
-        const lines = text.split("\n");
-        each(lines, (line, index) => {
-          const indent = getIndent(line);
-          const content = line.replace(buildRegex(searches), "");
-          lines[index] = `${indent}${content}`;
-        });
-        return lines.join("\n");
-      },
-    });
   };
 
   /**==================================
    * Command handlers
    **=================================*/
 
-  // TODO
   toggleTodo = (): void => {
     this.togglePrefix({
       searches: [REGEX_TODO],
@@ -328,18 +320,29 @@ export default class FormatHotkeys extends Plugin {
     this.togglePrefix({
       searches: [REGEX_OL],
       replace: [REGEX_TODO, REGEX_UL],
-      add: (text, searches) => {
+      add: ({ replace = [] }) => {
         // We have to do the loop our here to pull the number for the line
-        const lines = text.split("\n");
+
+        const editor = this.getActiveEditor();
+        if (!editor) {
+          return;
+        }
+
+        const selection = getSelection(editor);
+        const { start, end, content } = selection;
+
+        const lines = content.split("\n");
         each(lines, (line, index) => {
           lines[index] = prefixLines({
             content: line,
             prefix: `${index + 1}. `,
             preserveIndent: true,
-            replace: searches,
+            replace,
           });
         });
-        return lines.join("\n");
+        const updatedContent = lines.join("\n");
+        editor.replaceRange(updatedContent, start, end);
+        restoreCursor(selection, content, updatedContent);
       },
     });
   };
@@ -353,14 +356,13 @@ export default class FormatHotkeys extends Plugin {
   };
 
   removeFormatting = (): void => {
+    console.log("remove formatting");
     this.removePrefix();
   };
 
   getFormatHeading = (level: number) => (): void => {
-    this.removePrefix();
-    this.togglePrefix({
-      searches: [REGEX_ANY],
-      force: true,
+    this.addPrefix({
+      replace: PREFIXES,
       prefix: [...times(level, () => "#"), " "].join(""),
     });
   };

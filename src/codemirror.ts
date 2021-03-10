@@ -1,5 +1,5 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
-import { each, last, update } from "lodash";
+import { each } from "lodash";
 import { Editor, Position } from "codemirror";
 
 export interface Selection {

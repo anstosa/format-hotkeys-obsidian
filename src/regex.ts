@@ -1,14 +1,22 @@
 import { isString } from "lodash";
 
+export const REGEX_ANY = "^(\\s*)";
+export const REGEX_BOLD = "\\*\\*(.*)\\*\\*";
 export const REGEX_HEADING = "^#+ ";
-export const REGEX_TODO = "^(\\s*)[-*] \\[[ xX]\\] ";
-export const REGEX_UL = "^(\\s*)([-*]) ";
+export const REGEX_ITALICS = "[^*]\\*(.*)\\*[^*]";
 export const REGEX_OL = "^(\\s*)[\\d]\\. ";
 export const REGEX_QUOTE = "^>\\s*";
-export const REGEX_ANY = "^(\\s*)";
 export const REGEX_STRIKE = "~~(.*)~~";
-export const REGEX_BOLD = "\\*\\*(.*)\\*\\*";
-export const REGEX_ITALICS = "[^*]\\*(.*)\\*[^*]";
+export const REGEX_TODO = "^(\\s*)[-*] \\[[ xX]\\] ";
+export const REGEX_UL = "^(\\s*)([-*]) ";
+
+export const PREFIXES = [
+  REGEX_HEADING,
+  REGEX_OL,
+  REGEX_QUOTE,
+  REGEX_TODO,
+  REGEX_UL,
+];
 
 export const buildRegex = (
   inputs: string | string[],
