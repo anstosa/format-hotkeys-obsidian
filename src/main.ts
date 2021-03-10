@@ -255,16 +255,6 @@ export default class FormatHotkeys extends Plugin {
     return activeView?.sourceMode?.cmEditor || null;
   };
 
-  getDefaultIndent = (): string => {
-    const editor = this.getActiveEditor();
-    if (!editor) {
-      return "";
-    }
-    return editor.getOption("indentWithTabs")
-      ? "\t"
-      : times(editor.getOption("tabSize") || 4, () => " ").join("");
-  };
-
   togglePrefix = ({
     searches,
     replace = [],
@@ -386,21 +376,17 @@ export default class FormatHotkeys extends Plugin {
   };
 
   indent = (): void => {
-    this.togglePrefix({
-      searches: [REGEX_ANY],
-      force: true,
-      add: (text) => text.replace(/^/gm, this.getDefaultIndent()),
-    });
+    const editor = this.getActiveEditor();
+    if (editor) {
+      editor.execCommand("indentMore");
+    }
   };
 
   outdent = (): void => {
-    this.togglePrefix({
-      searches: [REGEX_ANY],
-      force: false,
-      prefix: "",
-      remove: (text) =>
-        text.replace(new RegExp(`^${this.getDefaultIndent()}`, "gm"), ""),
-    });
+    const editor = this.getActiveEditor();
+    if (editor) {
+      editor.execCommand("indentLess");
+    }
   };
 
   removeFormatting = (): void => {
