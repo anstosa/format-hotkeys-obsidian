@@ -50,8 +50,8 @@ export const getSelection = (editor: Editor): Selection => {
  */
 export const restoreCursor = (
   { start, end, editor, hasSelection, originalHead }: Selection,
-  content: string,
-  updatedContent: string
+  content?: string,
+  updatedContent?: string
 ): void => {
   if (hasSelection) {
     editor.setSelection(start, {
@@ -60,9 +60,12 @@ export const restoreCursor = (
     });
   } else if (originalHead) {
     const { line } = originalHead;
-    const delta =
-      (last(updatedContent.split("\n") || [""]) as string).length -
-      (last(content.split("\n") || [""]) as string).length;
+    let delta = 0;
+    if (content && updatedContent) {
+      delta =
+        (last(updatedContent.split("\n") || [""]) as string).length -
+        (last(content.split("\n") || [""]) as string).length;
+    }
     const ch = originalHead.ch + delta;
     editor.setSelection({ line, ch });
   }
