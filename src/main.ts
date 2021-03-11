@@ -355,7 +355,6 @@ export default class FormatHotkeys extends Plugin {
   };
 
   removeFormatting = (): void => {
-    console.log("remove formatting");
     this.removePrefix();
   };
 
