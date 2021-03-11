@@ -1,6 +1,6 @@
 {
   "name": "format-hotkeys-obsidian",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Google Docs style formatting hotkeys for Obsidian",
   "scripts": {
     "dev": "npm run build -- --watch",
