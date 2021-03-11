@@ -2,7 +2,6 @@ import {
   buildRegex,
   matches,
   PREFIXES,
-  REGEX_ANY,
   REGEX_OL,
   REGEX_QUOTE,
   REGEX_TODO,
@@ -244,7 +243,7 @@ export default class FormatHotkeys extends Plugin {
     const updatedContent = prefixLines({
       content,
       prefix,
-      replace: [...replace, REGEX_ANY],
+      replace,
       preserveIndent: true,
     });
     editor.replaceRange(updatedContent, start, end);
