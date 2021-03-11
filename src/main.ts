@@ -320,8 +320,6 @@ export default class FormatHotkeys extends Plugin {
       searches: [REGEX_OL],
       replace: [REGEX_TODO, REGEX_UL],
       add: ({ replace = [] }) => {
-        // We have to do the loop our here to pull the number for the line
-
         const editor = this.getActiveEditor();
         if (!editor) {
           return;
@@ -330,6 +328,8 @@ export default class FormatHotkeys extends Plugin {
         const selection = getSelection(editor);
         const { start, end, content } = selection;
 
+        // We have to do the loop our here (even though prefixLines can loop)
+        // in order to pull the number for the line from this context
         const lines = content.split("\n");
         each(lines, (line, index) => {
           lines[index] = prefixLines({
