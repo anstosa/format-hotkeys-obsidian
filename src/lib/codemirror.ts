@@ -1,5 +1,5 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
-import { Editor, Position } from "codemirror";
+import type { Editor, Position } from "codemirror";
 
 export interface Selection {
   hasSelection: boolean;

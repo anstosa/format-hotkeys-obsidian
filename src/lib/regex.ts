@@ -1,4 +1,4 @@
-import { isString } from "lodash";
+import { isString } from "./string";
 
 export const REGEX_ANY = "^(\\s*)";
 export const REGEX_BOLD = "\\*\\*(.*)\\*\\*";

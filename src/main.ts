@@ -6,12 +6,11 @@ import {
   REGEX_QUOTE,
   REGEX_TODO,
   REGEX_UL,
-} from "./regex";
-import { Editor } from "codemirror";
-import { getSelection, prefixLines, restoreCursor } from "./codemirror";
-import { log } from "./log";
+} from "./lib/regex";
+import { getSelection, prefixLines, restoreCursor } from "./lib/codemirror";
+import { log } from "./lib/log";
 import { MarkdownView, Plugin } from "obsidian";
-import { times } from "lodash";
+import type { Editor } from "codemirror";
 
 const UL_CHAR = "-";
 
@@ -361,7 +360,7 @@ export default class FormatHotkeys extends Plugin {
   getFormatHeading = (level: number) => (): void => {
     this.addPrefix({
       replace: PREFIXES,
-      prefix: [...times(level, () => "#"), " "].join(""),
+      prefix: [...new Array(level).fill("#"), " "].join(""),
     });
   };
 }

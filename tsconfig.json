@@ -19,5 +19,5 @@
     "strictNullChecks": true,
     "target": "ES5"
   },
-  "include": ["src/*.ts", "node_modules/obsidian/obsidian.d.ts"]
+  "include": ["src/*.ts", "node_modules/obsidian/obsidian.d.ts", "src/lib/regex.ts", "src/lib/log.ts", "src/lib/codemirror.ts"]
 }

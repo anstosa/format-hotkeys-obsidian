@@ -3,8 +3,8 @@
   "version": "0.1.2",
   "description": "Google Docs style formatting hotkeys for Obsidian",
   "scripts": {
-    "dev": "npm run build -- --watch",
-    "build": "rollup -c rollup.config.ts",
+    "dev": "NODE_ENV=development rollup -c rollup.config.ts --watch",
+    "build": "NODE_ENV=production rollup -c rollup.config.ts",
     "lint:fix": "npm run lint -- --fix",
     "lint": "eslint --ext .ts src/",
     "type-check": "npx tsc --noEmit"
@@ -42,8 +42,10 @@
     "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
     "prettier": "^2.2.1",
     "rollup": "^2.40.0",
+    "rollup-plugin-analyzer": "^4.0.0",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-execute": "^1.1.1",
+    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
     "ts-loader": "^8.0.17",
     "ts-node": "^9.1.1",

@@ -1,10 +1,14 @@
 import { each, get } from "lodash";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import { terser } from "rollup-plugin-terser";
+import analyze from "rollup-plugin-analyzer";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import execute from "rollup-plugin-execute";
 import fs from "fs";
 import typescript from "rollup-plugin-typescript2";
+
+const isProduction = process.env.NODE_ENV === "production";
 
 /**
  * Mapping of Obsidian manifest keys to npm package.json paths
@@ -33,7 +37,7 @@ export default {
   input: "src/main.ts",
   output: {
     dir: "dist",
-    sourcemap: "inline",
+    sourcemap: isProduction ? false : "inline",
     format: "cjs",
     exports: "default",
   },
@@ -64,5 +68,7 @@ export default {
       ],
     }),
     execute("./install.sh"),
-  ],
+    analyze(),
+    isProduction && terser(),
+  ].filter(Boolean),
 };
