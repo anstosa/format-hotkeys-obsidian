@@ -1,5 +1,4 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
-import { each } from "lodash";
 import { Editor, Position } from "codemirror";
 
 export interface Selection {
@@ -97,7 +96,7 @@ export const prefixLines = ({
 }): string => {
   if (preserveIndent) {
     const lines = content.split("\n");
-    each(lines, (line, index) => {
+    lines.forEach((line, index) => {
       const indent = getIndent(line);
       const content = line.replace(buildRegex([...replace, REGEX_ANY]), "");
       lines[index] = `${indent}${prefix}${content}`;

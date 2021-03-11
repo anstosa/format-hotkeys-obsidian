@@ -7,11 +7,11 @@ import {
   REGEX_TODO,
   REGEX_UL,
 } from "./regex";
-import { each, every, times } from "lodash";
 import { Editor } from "codemirror";
 import { getSelection, prefixLines, restoreCursor } from "./codemirror";
 import { log } from "./log";
 import { MarkdownView, Plugin } from "obsidian";
+import { times } from "lodash";
 
 const UL_CHAR = "-";
 
@@ -285,9 +285,9 @@ export default class FormatHotkeys extends Plugin {
     const { content } = selection;
 
     if (
-      every(content.split("\n"), (line) =>
-        matches(line, buildRegex(searches || [prefix]))
-      )
+      content
+        .split("\n")
+        .every((line) => matches(line, buildRegex(searches || [prefix])))
     ) {
       // full match, remove prefixes
       (remove || this.removePrefix)({ searches });
@@ -331,7 +331,7 @@ export default class FormatHotkeys extends Plugin {
         // We have to do the loop our here (even though prefixLines can loop)
         // in order to pull the number for the line from this context
         const lines = content.split("\n");
-        each(lines, (line, index) => {
+        lines.forEach((line, index) => {
           lines[index] = prefixLines({
             content: line,
             prefix: `${index + 1}. `,
