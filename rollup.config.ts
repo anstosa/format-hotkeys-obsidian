@@ -6,6 +6,8 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import execute from "rollup-plugin-execute";
 import fs from "fs";
+import sass from "sass";
+import scss from "rollup-plugin-scss";
 import typescript from "rollup-plugin-typescript2";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -30,7 +32,14 @@ const renderTemplate = (content) => {
     manifest[field] = get(pkg, path);
   });
 
-  return JSON.stringify(manifest, null, 2);
+  return JSON.stringify(
+    {
+      NOTE: "AUTOMATICALLY GENERATED FILE! DO NOT EDIT DIRECTLY!",
+      ...manifest,
+    },
+    null,
+    2
+  );
 };
 
 export default {
@@ -52,18 +61,19 @@ export default {
       },
     },
     typescript(),
+    scss({
+      output: "dist/style.css",
+      failOnError: true,
+      sass,
+    }),
     nodeResolve({ browser: true }),
     commonjs(),
     copy({
       targets: [
         {
           src: "src/manifest.json",
-          dest: "dist",
+          dest: ".",
           transform: renderTemplate,
-        },
-        {
-          src: "src/style.css",
-          dest: "dist",
         },
       ],
     }),

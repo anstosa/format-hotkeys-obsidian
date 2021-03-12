@@ -1,3 +1,4 @@
+import "./style.scss";
 import {
   buildRegex,
   matches,
