@@ -45,7 +45,7 @@ const renderTemplate = (content) => {
 export default {
   input: "src/main.ts",
   output: {
-    dir: "dist",
+    dir: isProduction ? "dist" : ".",
     sourcemap: isProduction ? false : "inline",
     format: "cjs",
     exports: "default",
