@@ -44,7 +44,7 @@ var isString = function (input) {
 };
 
 var REGEX_ANY = "^(\\s*)";
-var REGEX_HEADING = "^#+ ";
+var REGEX_HEADING = "^(#+) ";
 var REGEX_OL = "^(\\s*)\\d+\\. ";
 var REGEX_QUOTE = "^>\\s*";
 var REGEX_TODO = "^(\\s*)[-*] \\[[ xX]\\] ";
@@ -338,6 +338,28 @@ var FormatHotkeys = /** @class */ (function (_super) {
                     },
                 ],
             });
+            _this.addCommand({
+                id: "fho-heading-increase",
+                name: "Increase heading level",
+                callback: _this.increseHeadingLevel(),
+                hotkeys: [
+                    {
+                        modifiers: ["Mod", "Shift"],
+                        key: "+",
+                    },
+                ],
+            });
+            _this.addCommand({
+                id: "fho-head-decrease",
+                name: "Decrease heading level",
+                callback: _this.decreaseHeadingLevel(),
+                hotkeys: [
+                    {
+                        modifiers: ["Mod", "Shift"],
+                        key: "-",
+                    },
+                ],
+            });
         };
         /**==================================
          * Utility functions
@@ -471,10 +493,71 @@ var FormatHotkeys = /** @class */ (function (_super) {
                 prefix: __spreadArray(__spreadArray([], new Array(level).fill("#")), [" "]).join(""),
             });
         }; };
+        _this.increseHeadingLevel = function () { return function () {
+            var editor = _this.getActiveEditor();
+            if (!editor) {
+                return;
+            }
+            var selection = getSelection(editor);
+            var start = selection.start, end = selection.end, content = selection.content;
+            var lines = content.split("\n");
+            lines.forEach(function (line, index) {
+                var value = line.match(REGEX_HEADING);
+                if (!value) {
+                    lines[index] = "# " + line;
+                }
+                else {
+                    var level = _this.count(value[1], "#");
+                    if (level >= 6) {
+                        lines[index] = "" + line;
+                    }
+                    else {
+                        lines[index] = "#" + line;
+                    }
+                }
+            });
+            var updatedContent = lines.join("\n");
+            editor.replaceRange(updatedContent, start, end);
+            restoreCursor(selection, content, updatedContent);
+        }; };
+        _this.decreaseHeadingLevel = function () { return function () {
+            var editor = _this.getActiveEditor();
+            if (!editor) {
+                return;
+            }
+            var selection = getSelection(editor);
+            var start = selection.start, end = selection.end, content = selection.content;
+            var lines = content.split("\n");
+            lines.forEach(function (line, index) {
+                var value = line.match(REGEX_HEADING);
+                if (!value) {
+                    lines[index] = "" + line;
+                }
+                else {
+                    var level = _this.count(value[1], "#");
+                    if (level === 1) {
+                        line = line.substring(1);
+                    }
+                    lines[index] = line.substring(1);
+                }
+            });
+            var updatedContent = lines.join("\n");
+            editor.replaceRange(updatedContent, start, end);
+            restoreCursor(selection, content, updatedContent);
+        }; };
+        _this.count = function (s, substring) {
+            var match = (s.match(new RegExp("" + substring, "g")) || []);
+            if (match) {
+                return match.length;
+            }
+            else {
+                return 0;
+            }
+        };
         return _this;
     }
     return FormatHotkeys;
 }(obsidian.Plugin));
 
 module.exports = FormatHotkeys;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWFpbi5qcyIsInNvdXJjZXMiOltdLCJzb3VyY2VzQ29udGVudCI6W10sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OzsifQ==
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWFpbi5qcyIsInNvdXJjZXMiOltdLCJzb3VyY2VzQ29udGVudCI6W10sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OyJ9

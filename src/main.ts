@@ -7,6 +7,7 @@ import {
   REGEX_QUOTE,
   REGEX_TODO,
   REGEX_UL,
+  REGEX_HEADING
 } from "./lib/regex";
 import { getSelection, prefixLines, restoreCursor } from "./lib/codemirror";
 import { log } from "./lib/log";
@@ -211,6 +212,30 @@ export default class FormatHotkeys extends Plugin {
         },
       ],
     });
+
+    this.addCommand({
+      id: "fho-heading-increase",
+      name: "Increase heading level",
+      callback: this.increseHeadingLevel(),
+      hotkeys: [
+        {
+          modifiers: ["Mod", "Shift"],
+          key: "+",
+        },
+      ],
+    });
+
+    this.addCommand({
+      id: "fho-head-decrease",
+      name: "Decrease heading level",
+      callback: this.decreaseHeadingLevel(),
+      hotkeys: [
+        {
+          modifiers: ["Mod", "Shift"],
+          key: "-",
+        },
+      ],
+    });
   };
 
   /**==================================
@@ -364,4 +389,72 @@ export default class FormatHotkeys extends Plugin {
       prefix: [...new Array(level).fill("#"), " "].join(""),
     });
   };
+
+  increseHeadingLevel = () => (): void => {
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
+
+    const lines = content.split("\n");
+    lines.forEach((line, index) => {
+      const value = line.match(REGEX_HEADING);
+      if(!value){
+        lines[index] = `# ${line}`;
+      }else{
+        const level = this.count(value[1], "#");
+        if(level >= 6){
+          lines[index] = `${line}`;
+        }else{
+          lines[index] = `#${line}`;
+        }
+      }
+    });
+
+    const updatedContent = lines.join("\n");
+    editor.replaceRange(updatedContent, start, end);
+    restoreCursor(selection, content, updatedContent);
+  };
+
+  decreaseHeadingLevel = () => (): void => {
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
+
+    const lines = content.split("\n");
+    lines.forEach((line, index) => {
+      const value = line.match(REGEX_HEADING);
+
+      if(!value){
+        lines[index] = `${line}`;
+      }else{
+        const level = this.count(value[1], "#");
+        if(level === 1){
+          line = line.substring(1);
+        }
+        lines[index] = line.substring(1);
+      }
+    });
+
+    const updatedContent = lines.join("\n");
+    editor.replaceRange(updatedContent, start, end);
+    restoreCursor(selection, content, updatedContent);
+  };
+
+  count = (s: string, substring: string): number=>{
+    const match = (s.match(new RegExp(`${substring}`, "g")) || []);
+    if(match){
+      return match.length;
+    }
+    else{
+      return 0;
+    }
+  }
 }
