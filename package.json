@@ -39,7 +39,7 @@
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-sort-imports-es6-autofix": "^0.5.0",
     "lodash": "^4.17.21",
-    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "obsidian": "^0.12.2",
     "prettier": "^2.2.1",
     "rollup": "^2.40.0",
     "rollup-plugin-analyzer": "^4.0.0",
