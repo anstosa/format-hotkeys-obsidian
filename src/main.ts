@@ -3,6 +3,7 @@ import {
   buildRegex,
   matches,
   PREFIXES,
+  REGEX_HEADING,
   REGEX_OL,
   REGEX_QUOTE,
   REGEX_TODO,
@@ -11,6 +12,7 @@ import {
 import { getSelection, prefixLines, restoreCursor } from "./lib/codemirror";
 import { log } from "./lib/log";
 import { MarkdownView, Plugin } from "obsidian";
+import { occurrences } from "./lib/string";
 import type { Editor } from "codemirror";
 
 const UL_CHAR = "-";
@@ -211,6 +213,30 @@ export default class FormatHotkeys extends Plugin {
         },
       ],
     });
+
+    this.addCommand({
+      id: "fho-heading-increase",
+      name: "Increase heading level",
+      callback: this.getIncrementHeadingLevel("+"),
+      hotkeys: [
+        {
+          modifiers: ["Mod", "Shift"],
+          key: "+",
+        },
+      ],
+    });
+
+    this.addCommand({
+      id: "fho-head-decrease",
+      name: "Decrease heading level",
+      callback: this.getIncrementHeadingLevel("-"),
+      hotkeys: [
+        {
+          modifiers: ["Mod", "Shift"],
+          key: "-",
+        },
+      ],
+    });
   };
 
   /**==================================
@@ -363,5 +389,45 @@ export default class FormatHotkeys extends Plugin {
       replace: PREFIXES,
       prefix: [...new Array(level).fill("#"), " "].join(""),
     });
+  };
+
+  getIncrementHeadingLevel = (direction: "+" | "-") => (): void => {
+    const editor = this.getActiveEditor();
+    if (!editor) {
+      return;
+    }
+
+    const selection = getSelection(editor);
+    const { start, end, content } = selection;
+
+    const lines = content.split("\n");
+    lines.forEach((line, index) => {
+      const currentHeading = line.match(REGEX_HEADING);
+      if (currentHeading) {
+        // get the current heading level
+        const level = occurrences(currentHeading[1], "#");
+        if (level === 1 && direction === "+") {
+          // going up but already at the top. Do nothing.
+        } else if (level > 1 && direction === "+") {
+          // going up and not at the top, remove a #
+          lines[index] = line.substring(1);
+        } else if (level < 6) {
+          // going down and not at the bottom, add a #
+          lines[index] = `#${line}`;
+        } else if (level === 6) {
+          // going down and at the bottom, remove all # and padding space
+          lines[index] = line.substring(7);
+        }
+      } else {
+        // No heading yet.
+        // Do nothing if decreasing
+        // Step up to h6 if increasing
+        lines[index] = `${direction === "+" ? "###### " : ""}${line}`;
+      }
+    });
+
+    const updatedContent = lines.join("\n");
+    editor.replaceRange(updatedContent, start, end);
+    restoreCursor(selection, content, updatedContent);
   };
 }

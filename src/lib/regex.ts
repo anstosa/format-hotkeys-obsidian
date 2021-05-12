@@ -2,9 +2,9 @@ import { isString } from "./string";
 
 export const REGEX_ANY = "^(\\s*)";
 export const REGEX_BOLD = "\\*\\*(.*)\\*\\*";
-export const REGEX_HEADING = "^#+ ";
+export const REGEX_HEADING = "^(#+) ";
 export const REGEX_ITALICS = "[^*]\\*(.*)\\*[^*]";
-export const REGEX_OL = "^(\\s*)[\\d]\\. ";
+export const REGEX_OL = "^(\\s*)\\d+\\. ";
 export const REGEX_QUOTE = "^>\\s*";
 export const REGEX_STRIKE = "~~(.*)~~";
 export const REGEX_TODO = "^(\\s*)[-*] \\[[ xX]\\] ";
