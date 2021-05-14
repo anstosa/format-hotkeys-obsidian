@@ -1,4 +1,6 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
+import { isString } from "./string";
+import { log } from "./log";
 import type { Editor, Position } from "codemirror";
 
 export interface Selection {
@@ -69,8 +71,8 @@ export const restoreCursor = (
   } else if (originalHead) {
     const { line } = originalHead;
     let delta = 0;
-    if (content && updatedContent) {
-      const relativeLine = originalHead.line - start.line;
+    const relativeLine = originalHead.line - start.line;
+    if (isString(content) && isString(updatedContent)) {
       delta =
         getLineContent(relativeLine, updatedContent).length -
         getLineContent(relativeLine, content).length;
