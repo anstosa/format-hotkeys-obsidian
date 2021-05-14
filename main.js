@@ -42,6 +42,36 @@ function __spreadArray(to, from) {
 var isString = function (input) {
     return typeof input === "string" || input instanceof String;
 };
+/** Function that count occurrences of a substring in a string;
+ * @param {String} string               The string
+ * @param {String} search            The sub string to search for
+ * @param {Boolean} [allowOverlapping]  Optional. (Default:false)
+ *
+ * @author Vitim.us https://gist.github.com/victornpb/7736865
+ * @see Unit Test https://jsfiddle.net/Victornpb/5axuh96u/
+ * @see http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string/7924240#7924240
+ */
+var occurrences = function (string, search, allowOverlapping) {
+    if (allowOverlapping === void 0) { allowOverlapping = false; }
+    if (search.length <= 0) {
+        return string.length + 1;
+    }
+    var n = 0;
+    var pos = 0;
+    var step = allowOverlapping ? 1 : search.length;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        pos = string.indexOf(search, pos);
+        if (pos >= 0) {
+            ++n;
+            pos += step;
+        }
+        else {
+            break;
+        }
+    }
+    return n;
+};
 
 var REGEX_ANY = "^(\\s*)";
 var REGEX_HEADING = "^(#+) ";
@@ -72,6 +102,18 @@ var matches = function (text, search) {
 var getIndent = function (text) {
     var _a = text.match(REGEX_ANY) || [], indent = _a[1];
     return indent || "";
+};
+
+/**
+ * Send tagged log message
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+var log = function (message) {
+    var args = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        args[_i - 1] = arguments[_i];
+    }
+    console.log.apply(console, __spreadArray(["[FormatHotkeys] " + message], args));
 };
 
 /**
@@ -129,8 +171,9 @@ var restoreCursor = function (_a, content, updatedContent) {
     else if (originalHead) {
         var line = originalHead.line;
         var delta = 0;
-        if (content && updatedContent) {
-            var relativeLine = originalHead.line - start.line;
+        var relativeLine = originalHead.line - start.line;
+        log("test", content, updatedContent);
+        if (isString(content) && isString(updatedContent)) {
             delta =
                 getLineContent(relativeLine, updatedContent).length -
                     getLineContent(relativeLine, content).length;
@@ -153,18 +196,6 @@ var prefixLines = function (_a) {
     else {
         return content.replace(buildRegex(__spreadArray(__spreadArray([], replace), [REGEX_ANY])), prefix);
     }
-};
-
-/**
- * Send tagged log message
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-var log = function (message) {
-    var args = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        args[_i - 1] = arguments[_i];
-    }
-    console.log.apply(console, __spreadArray(["[FormatHotkeys] " + message], args));
 };
 
 var UL_CHAR = "-";
@@ -341,7 +372,7 @@ var FormatHotkeys = /** @class */ (function (_super) {
             _this.addCommand({
                 id: "fho-heading-increase",
                 name: "Increase heading level",
-                callback: _this.increseHeadingLevel(),
+                callback: _this.getIncrementHeadingLevel("+"),
                 hotkeys: [
                     {
                         modifiers: ["Mod", "Shift"],
@@ -352,7 +383,7 @@ var FormatHotkeys = /** @class */ (function (_super) {
             _this.addCommand({
                 id: "fho-head-decrease",
                 name: "Decrease heading level",
-                callback: _this.decreaseHeadingLevel(),
+                callback: _this.getIncrementHeadingLevel("-"),
                 hotkeys: [
                     {
                         modifiers: ["Mod", "Shift"],
@@ -493,7 +524,7 @@ var FormatHotkeys = /** @class */ (function (_super) {
                 prefix: __spreadArray(__spreadArray([], new Array(level).fill("#")), [" "]).join(""),
             });
         }; };
-        _this.increseHeadingLevel = function () { return function () {
+        _this.getIncrementHeadingLevel = function (direction) { return function () {
             var editor = _this.getActiveEditor();
             if (!editor) {
                 return;
@@ -502,62 +533,39 @@ var FormatHotkeys = /** @class */ (function (_super) {
             var start = selection.start, end = selection.end, content = selection.content;
             var lines = content.split("\n");
             lines.forEach(function (line, index) {
-                var value = line.match(REGEX_HEADING);
-                if (!value) {
-                    lines[index] = "# " + line;
-                }
-                else {
-                    var level = _this.count(value[1], "#");
-                    if (level >= 6) {
-                        lines[index] = "" + line;
+                var currentHeading = line.match(REGEX_HEADING);
+                if (currentHeading) {
+                    // get the current heading level
+                    var level = occurrences(currentHeading[1], "#");
+                    if (level === 1 && direction === "+") ;
+                    else if (level > 1 && direction === "+") {
+                        // going up and not at the top, remove a #
+                        lines[index] = line.substring(1);
                     }
-                    else {
+                    else if (level < 6) {
+                        // going down and not at the bottom, add a #
                         lines[index] = "#" + line;
                     }
-                }
-            });
-            var updatedContent = lines.join("\n");
-            editor.replaceRange(updatedContent, start, end);
-            restoreCursor(selection, content, updatedContent);
-        }; };
-        _this.decreaseHeadingLevel = function () { return function () {
-            var editor = _this.getActiveEditor();
-            if (!editor) {
-                return;
-            }
-            var selection = getSelection(editor);
-            var start = selection.start, end = selection.end, content = selection.content;
-            var lines = content.split("\n");
-            lines.forEach(function (line, index) {
-                var value = line.match(REGEX_HEADING);
-                if (!value) {
-                    lines[index] = "" + line;
+                    else if (level === 6) {
+                        // going down and at the bottom, remove all # and padding space
+                        lines[index] = line.substring(7);
+                    }
                 }
                 else {
-                    var level = _this.count(value[1], "#");
-                    if (level === 1) {
-                        line = line.substring(1);
-                    }
-                    lines[index] = line.substring(1);
+                    // No heading yet.
+                    // Do nothing if decreasing
+                    // Step up to h6 if increasing
+                    lines[index] = "" + (direction === "+" ? "###### " : "") + line;
                 }
             });
             var updatedContent = lines.join("\n");
             editor.replaceRange(updatedContent, start, end);
             restoreCursor(selection, content, updatedContent);
         }; };
-        _this.count = function (s, substring) {
-            var match = (s.match(new RegExp("" + substring, "g")) || []);
-            if (match) {
-                return match.length;
-            }
-            else {
-                return 0;
-            }
-        };
         return _this;
     }
     return FormatHotkeys;
 }(obsidian.Plugin));
 
 module.exports = FormatHotkeys;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWFpbi5qcyIsInNvdXJjZXMiOltdLCJzb3VyY2VzQ29udGVudCI6W10sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OyJ9
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWFpbi5qcyIsInNvdXJjZXMiOltdLCJzb3VyY2VzQ29udGVudCI6W10sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7In0=

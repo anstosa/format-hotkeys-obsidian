@@ -1,4 +1,3 @@
-import { each, get } from "lodash";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import { terser } from "rollup-plugin-terser";
 import analyze from "rollup-plugin-analyzer";
@@ -6,6 +5,8 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import execute from "rollup-plugin-execute";
 import fs from "fs";
+import get from "lodash.get";
+import path from "path";
 import sass from "sass";
 import scss from "rollup-plugin-scss";
 import typescript from "rollup-plugin-typescript2";
@@ -28,7 +29,7 @@ const renderTemplate = (content) => {
   const pkg = JSON.parse(fs.readFileSync("package.json").toString());
   const manifest = JSON.parse(content.toString());
 
-  each(PACKAGE_PATH_BY_MANIFEST_FIELD, (path, field) => {
+  Object.entries(PACKAGE_PATH_BY_MANIFEST_FIELD).forEach(([field, path]) => {
     manifest[field] = get(pkg, path);
   });
 
@@ -77,7 +78,8 @@ export default {
         },
       ],
     }),
-    execute("./install.sh"),
+    fs.existsSync(path.resolve(__dirname, "install.sh")) &&
+      execute("./install.sh"),
     analyze(),
     isProduction && terser(),
   ].filter(Boolean),
