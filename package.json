@@ -1,6 +1,6 @@
 {
   "name": "format-hotkeys-obsidian",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Google Docs style formatting hotkeys for Obsidian",
   "scripts": {
     "dev": "rollup -c rollup.config.ts --watch --environment NODE_ENV:development",
