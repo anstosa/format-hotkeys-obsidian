@@ -1,6 +1,5 @@
 import { buildRegex, getIndent, REGEX_ANY } from "./regex";
 import { isString } from "./string";
-import { log } from "./log";
 import type { Editor, Position } from "codemirror";
 
 export interface Selection {
