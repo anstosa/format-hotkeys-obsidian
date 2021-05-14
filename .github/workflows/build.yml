@@ -23,16 +23,14 @@ jobs:
         with:
           node-version: "14.x"
 
-      - name: Load npm cache
+      - name: Load yarn cache
         uses: actions/cache@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-    - uses: actions/checkout@v2
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
 
       - name: Run build
-        run: npm run build
+        run: yarn build
